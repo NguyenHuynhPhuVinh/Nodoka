@@ -44,6 +44,25 @@ mitm_client: Client = None
 mjai_controller: Controller = None
 mjai_bot: AkagiBot = None
 
+# Đường dẫn cho file JSON lưu trữ
+LOG_FILE_PATH = "./game_logs.json"
+
+# Hàm để lưu trạng thái game vào JSON
+def save_game_state(tehai, recommandations, action, tsumo=""):
+    game_state = {
+        "tehai": tehai,
+        "tsumo": tsumo,
+        "recommandations": recommandations,
+        "action": action
+    }
+    
+    # Ghi đè vào file (không thêm vào mảng cũ)
+    try:
+        with open(LOG_FILE_PATH, "w", encoding="utf-8") as f:
+            json.dump(game_state, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.error(f"Lỗi khi lưu game state: {str(e)}")
+
 # ============================================= #
 #               Settings Screen                 #
 # ============================================= #
@@ -440,6 +459,8 @@ class Tehai(Horizontal):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
+        self.current_tehai = []
+        self.current_tsumo = ""
 
     def compose(self) -> ComposeResult:
         for i in range(13):
@@ -458,6 +479,11 @@ class Tehai(Horizontal):
         else:
             if (tsumo in tehai and len(tehai) in (14, 11, 8, 5, 2)):
                 tehai.remove(tsumo)
+        
+        # Lưu thông tin tehai và tsumo hiện tại
+        self.current_tehai = tehai.copy() if len(tehai) > 0 else []
+        self.current_tsumo = tsumo
+        
         for i in range(13):
             tehai_label: Label = self.query_one(f"#tehai_{i}")
             if i < len(tehai):
@@ -468,6 +494,8 @@ class Tehai(Horizontal):
         tehai_label.update(TILE_2_UNICODE_ART_RICH[tsumo])
 
     def clear_tehai(self) -> None:
+        self.current_tehai = []
+        self.current_tsumo = ""
         for i in range(13):
             tehai_label: Label = self.query_one(f"#tehai_{i}")
             tehai_label.update(TILE_2_UNICODE_ART_RICH["?"])
@@ -655,6 +683,7 @@ class Recommandations(Vertical):
 
     def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
+        self.current_recommandations = []
 
     def compose(self) -> ComposeResult:
         for i in range(self.RECOMMANDATION_COUNT):
@@ -667,6 +696,15 @@ class Recommandations(Vertical):
             return
         meta = mjai_msg["meta"]
         recommands: list[tuple[str, float]] = meta_to_recommend(meta, mjai_bot.is_3p)
+        
+        # Lưu thông tin recommandations hiện tại
+        self.current_recommandations = []
+        for i in range(min(self.RECOMMANDATION_COUNT, len(recommands))):
+            self.current_recommandations.append({
+                "action": recommands[i][0],
+                "score": recommands[i][1]
+            })
+            
         for i in range(self.RECOMMANDATION_COUNT):
             recommand: Recommandation = self.query_one(f"#recommandation_{i}")
             if i < len(recommands):
@@ -681,6 +719,7 @@ class BestAction(Horizontal):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
+        self.current_action = {}
 
     def compose(self) -> ComposeResult:
         yield Button("Action", id="best_action_button_action", variant="default")
@@ -709,6 +748,9 @@ class BestAction(Horizontal):
         else:
             action = "Unknown"
             logger.error(f"Unknown action: {mjai_msg['type']}")
+
+        # Lưu thông tin action hiện tại
+        self.current_action = mjai_msg.copy()
 
         best_action_button_action: Button = self.query_one("#best_action_button_action")
         best_action_tile: Label = self.query_one("#best_action_tile")
@@ -1006,6 +1048,18 @@ class AkagiApp(App):
                 recommandation.update_recommandation(mjai_response)
 
                 logger.debug(f"mjai_response: {mjai_response}")
+                
+                # ============================================= #
+                #            Save Game State to JSON            #
+                # ============================================= #
+                # Sau khi cập nhật UI, lưu trạng thái game vào JSON
+                if tehai.current_tehai and recommandation.current_recommandations:
+                    save_game_state(
+                        tehai.current_tehai, 
+                        recommandation.current_recommandations,
+                        best_action.current_action,
+                        tehai.current_tsumo
+                    )
         except Exception as e:
             logger.error(f"Error in main loop: {traceback.format_exc()}")
 

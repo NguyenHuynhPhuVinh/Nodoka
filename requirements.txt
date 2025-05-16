@@ -12,3 +12,8 @@ protobuf==5.29.3
 # PyTorch
 torch==2.5.1
 numpy==2.1.2
+
+# Additional
+pyautogui==0.9.54
+keyboard==0.13.5
+watchdog==3.0.0

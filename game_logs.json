@@ -1,0 +1,31 @@
+{
+  "tehai": [
+    "3m",
+    "4m",
+    "5m",
+    "5p",
+    "6p",
+    "8p",
+    "8p",
+    "4s",
+    "5s",
+    "5s",
+    "6s",
+    "6s",
+    "7s"
+  ],
+  "tsumo": "7s",
+  "recommandations": [
+    {
+      "action": "none",
+      "score": 0.9517963385524723
+    },
+    {
+      "action": "chi_high",
+      "score": 0.04820366144752778
+    }
+  ],
+  "action": {
+    "type": "none"
+  }
+}
