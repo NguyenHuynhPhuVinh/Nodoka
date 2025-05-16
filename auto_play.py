@@ -55,8 +55,8 @@ last_state = None
 last_modified_time = 0
 
 # Thiết lập delay ngẫu nhiên
-MIN_DELAY = 0.5  # Thời gian chờ tối thiểu (giây)
-MAX_DELAY = 2.5  # Thời gian chờ tối đa (giây)
+MIN_DELAY = 2.5  # Thời gian chờ tối thiểu (giây)
+MAX_DELAY = 5  # Thời gian chờ tối đa (giây)
 PRE_CLICK_DELAY_MIN = 0.2  # Độ trễ tối thiểu trước khi click
 PRE_CLICK_DELAY_MAX = 0.8  # Độ trễ tối đa trước khi click
 POST_CLICK_DELAY_MIN = 0.1  # Độ trễ tối thiểu sau khi click
